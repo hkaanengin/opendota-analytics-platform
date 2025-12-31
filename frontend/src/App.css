@@ -1,0 +1,156 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.app {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: #1a202c;
+  color: #e2e8f0;
+}
+
+.app-header {
+  background-color: #2d3748;
+  padding: 1rem 2rem;
+  border-bottom: 1px solid #4a5568;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.app-header h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #63b3ed;
+}
+
+.connection-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.status-dot.connected {
+  background-color: #48bb78;
+  box-shadow: 0 0 8px rgba(72, 187, 120, 0.5);
+}
+
+.status-dot.disconnected {
+  background-color: #f56565;
+  box-shadow: 0 0 8px rgba(245, 101, 101, 0.5);
+}
+
+.chat-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.messages-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.messages-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.messages-container::-webkit-scrollbar-track {
+  background: #2d3748;
+}
+
+.messages-container::-webkit-scrollbar-thumb {
+  background: #4a5568;
+  border-radius: 4px;
+}
+
+.messages-container::-webkit-scrollbar-thumb:hover {
+  background: #718096;
+}
+
+.welcome-message {
+  text-align: center;
+  max-width: 600px;
+  margin: auto;
+  padding: 2rem;
+}
+
+.welcome-message h2 {
+  color: #63b3ed;
+  margin-bottom: 1rem;
+}
+
+.welcome-message p {
+  color: #a0aec0;
+  margin-bottom: 1.5rem;
+  font-size: 1.125rem;
+}
+
+.example-questions {
+  background-color: #2d3748;
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin-top: 2rem;
+}
+
+.example-questions p {
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: #e2e8f0;
+}
+
+.example-questions ul {
+  list-style: none;
+  text-align: left;
+}
+
+.example-questions li {
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+  background-color: #1a202c;
+  border-radius: 6px;
+  color: #cbd5e0;
+  border-left: 3px solid #63b3ed;
+}
+
+.loading-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #a0aec0;
+  font-style: italic;
+  padding: 1rem;
+  max-width: 80%;
+}
+
+.loading-indicator span::after {
+  content: '...';
+  animation: dots 1.5s steps(4, end) infinite;
+}
+
+@keyframes dots {
+  0%, 20% {
+    content: '.';
+  }
+  40% {
+    content: '..';
+  }
+  60%, 100% {
+    content: '...';
+  }
+}
