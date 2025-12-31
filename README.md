@@ -15,8 +15,8 @@ An AI-powered Dota 2 chatbot assistant that uses OpenDota data through an MCP se
 │   FastAPI Backend           │
 │                             │
 │  - Conversation management  │
-│  - Gemini LLM integration  │
-│  - MCP client              │
+│  - Gemini LLM integration   │
+│  - MCP client               │
 └──────┬──────────────────────┘
        │ MCP Protocol
        ▼
