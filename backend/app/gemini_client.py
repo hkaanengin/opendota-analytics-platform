@@ -9,16 +9,29 @@ logger = logging.getLogger(__name__)
 class GeminiClient:
     def __init__(self, api_key: str):
         genai.configure(api_key=api_key)
-        self.model = genai.GenerativeModel('gemini-1.5-flash')
-        self.system_instruction = """You are a helpful Dota 2 assistant with access to comprehensive player, match, and hero statistics through the OpenDota API.
 
-Your role is to:
-- Answer questions about Dota 2 players, matches, heroes, and game statistics
-- Use the available tools to fetch real-time data when needed
-- Provide insightful analysis and commentary on the data
-- Be conversational and helpful
+        system_instruction = """You are a helpful Dota 2 assistant with access to comprehensive player, match, and hero statistics through the OpenDota API via MCP tools.
+            CRITICAL INSTRUCTIONS:
+            - When users ask about ANY player, hero, match, or statistic, you MUST use the available tools
+            - NEVER say you need more information - TRY THE TOOL FIRST with what the user provided
+            - The tools support fuzzy matching and player name searches - use them!
+            - If a user mentions a player name, immediately call get_player_info with that name
+            - If a user asks about items or heroes, use the appropriate tool with the name they provided
+            - ALWAYS attempt to use tools before asking for more details
 
-When users ask about specific players, matches, or statistics, use the appropriate tools to fetch the data and then provide a clear, informative response."""
+            Your process:
+            1. User asks about something → Immediately try the relevant tool
+            2. Tool returns data → Analyze and present it clearly
+            3. Only if the tool fails should you ask for clarification
+
+            Be proactive with tool usage - that's your superpower!
+            """
+
+        # Using Gemini 2.5 Flash with system instruction
+        self.model = genai.GenerativeModel(
+            'models/gemini-2.5-flash',
+            system_instruction=system_instruction
+        )
 
     async def chat(
         self,
@@ -93,7 +106,7 @@ When users ask about specific players, matches, or statistics, use the appropria
             function_declaration = genai.types.FunctionDeclaration(
                 name=tool["name"],
                 description=tool["description"],
-                parameters=tool["input_schema"]
+                parameters=tool.get("parameters", {"type": "object", "properties": {}})
             )
             gemini_tools.append(function_declaration)
 

@@ -26,10 +26,7 @@ async def lifespan(app: FastAPI):
     logger.info("Starting up application...")
     try:
         # Initialize MCP client
-        mcp_client = MCPClient(
-            server_command=settings.mcp_server_command,
-            server_args=settings.mcp_server_args
-        )
+        mcp_client = MCPClient(server_url=settings.mcp_server_url)
         await mcp_client.connect()
         logger.info("MCP client connected successfully")
 
