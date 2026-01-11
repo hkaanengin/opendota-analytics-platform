@@ -4,9 +4,10 @@ from contextlib import asynccontextmanager
 import logging
 
 from app.config import settings
-from app.models import ChatRequest, ChatResponse, Message
+from app.models import ChatRequest, ChatResponse, Message, MatchAnalysisRequest, MatchAnalysisResponse
 from app.mcp_client import MCPClient
 from app.gemini_client import GeminiClient
+from app.match_analyzer import MatchAnalysisOrchestrator
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -15,12 +16,13 @@ logger = logging.getLogger(__name__)
 # Global clients
 mcp_client: MCPClient | None = None
 gemini_client: GeminiClient | None = None
+match_orchestrator: MatchAnalysisOrchestrator | None = None
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Startup and shutdown events"""
-    global mcp_client, gemini_client
+    global mcp_client, gemini_client, match_orchestrator
 
     # Startup
     logger.info("Starting up application...")
@@ -33,6 +35,10 @@ async def lifespan(app: FastAPI):
         # Initialize Gemini client
         gemini_client = GeminiClient(api_key=settings.gemini_api_key)
         logger.info("Gemini client initialized successfully")
+
+        # Initialize Match Analysis Orchestrator
+        match_orchestrator = MatchAnalysisOrchestrator(api_key=settings.gemini_api_key)
+        logger.info("Match Analysis Orchestrator initialized successfully")
 
     except Exception as e:
         logger.error(f"Failed to initialize clients: {e}")
@@ -131,6 +137,43 @@ async def chat(request: ChatRequest):
 
     except Exception as e:
         logger.error(f"Error processing chat request: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/match-analysis", response_model=MatchAnalysisResponse)
+async def analyze_match(request: MatchAnalysisRequest):
+    """
+    Multi-agent match analysis endpoint
+    Fetches match details and runs comprehensive analysis using specialized sub-agents
+    """
+    if not mcp_client or not match_orchestrator:
+        raise HTTPException(status_code=503, detail="Services not initialized")
+
+    try:
+        logger.info(f"Received match analysis request for match ID: {request.match_id}")
+
+        # Fetch match details from MCP
+        match_data = await mcp_client.call_tool(
+            "get_match_details",
+            {"match_id": request.match_id}
+        )
+
+        # Check if match is parsed
+        if not match_data.get("parsed", False):
+            raise HTTPException(
+                status_code=400,
+                detail="Match is not parsed. Please use request_parse_match first and wait for parsing to complete."
+            )
+
+        # Run multi-agent analysis
+        analysis_result = await match_orchestrator.analyze_match(match_data)
+
+        return MatchAnalysisResponse(**analysis_result)
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error processing match analysis: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
