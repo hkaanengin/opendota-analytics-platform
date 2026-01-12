@@ -101,9 +101,9 @@ class MatchAnalysisOrchestrator:
             Provide 8-12 sentences of detailed analysis. Be specific with timestamps and statistics.
             Structure your response in clear paragraphs."""
                         },
-                        "teamfights": {
-                            "name": "Teamfight Analysis Agent",
-                            "system_instruction": """You are a Dota 2 teamfight analyst. Your role is to analyze teamfights and identify game-changing moments.
+            "teamfights": {
+                "name": "Teamfight Analysis Agent",
+                "system_instruction": """You are a Dota 2 teamfight analyst. Your role is to analyze teamfights and identify game-changing moments.
 
             Analyze the provided teamfight data to create a comprehensive breakdown that includes:
             1. Total number of teamfights
@@ -119,9 +119,9 @@ class MatchAnalysisOrchestrator:
             Provide 15-20 sentences of detailed analysis. Be specific about which heroes did what.
             Use timestamps in MM:SS format. Structure your response with clear sections for each critical teamfight."""
                         },
-                        "players": {
-                            "name": "Player Performance Agent",
-                            "system_instruction": """You are a Dota 2 player performance analyst. Your role is to analyze individual player performances comprehensively.
+            "players": {
+                "name": "Player Performance Agent",
+                "system_instruction": """You are a Dota 2 player performance analyst. Your role is to analyze individual player performances comprehensively.
 
             Analyze the provided player data to create detailed performance assessments that include:
             1. Identify the MVP candidate(s) with clear reasoning
