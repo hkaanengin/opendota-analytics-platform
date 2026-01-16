@@ -9,6 +9,7 @@ from app.mcp_client import MCPClient
 from app.gemini_client import GeminiClient
 from app.match_analyzer import MatchAnalysisOrchestrator
 
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -36,8 +37,8 @@ async def lifespan(app: FastAPI):
         gemini_client = GeminiClient(api_key=settings.gemini_api_key)
         logger.info("Gemini client initialized successfully")
 
-        # Initialize Match Analysis Orchestrator
-        match_orchestrator = MatchAnalysisOrchestrator(api_key=settings.gemini_api_key)
+        # Initialize Match Analysis Orchestrator (using Claude API)
+        match_orchestrator = MatchAnalysisOrchestrator(api_key=settings.claude_api_key)
         logger.info("Match Analysis Orchestrator initialized successfully")
 
     except Exception as e:

@@ -46,3 +46,27 @@ export const getAvailableTools = async () => {
     throw error;
   }
 };
+
+export const getMatchAnalysis = async (matchId) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/match-analysis`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        match_id: matchId,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error fetching match analysis:', error);
+    throw error;
+  }
+};
