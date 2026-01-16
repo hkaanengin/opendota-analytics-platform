@@ -1,4 +1,4 @@
-import google.generativeai as genai
+import anthropic
 import asyncio
 import logging
 import json
@@ -18,16 +18,13 @@ class SubAgent:
         Initialize a sub-agent with specialized instructions.
 
         Args:
-            api_key: Google Gemini API key
+            api_key: Claude API key
             agent_name: Name of this agent (e.g., "Overview Agent")
             system_instruction: Detailed instructions for what this agent should analyze
         """
-        genai.configure(api_key=api_key)
         self.agent_name = agent_name
-        self.model = genai.GenerativeModel(
-            'models/gemini-2.5-flash',
-            system_instruction=system_instruction
-        )
+        self.client = anthropic.AsyncAnthropic(api_key=api_key)
+        self.system_instruction = system_instruction
         logger.info(f"Initialized {agent_name}")
 
     async def analyze(self, data: Dict[str, Any], prompt: str) -> Dict[str, Any]:
@@ -48,14 +45,22 @@ class SubAgent:
             data_json = json.dumps(data, indent=2)
             full_prompt = f"{prompt}\n\nData to analyze:\n{data_json}"
 
-            # Generate analysis
-            response = self.model.generate_content(full_prompt)
+            # Generate analysis using Claude (async, parallel-capable)
+            message = await self.client.messages.create(
+                model="claude-sonnet-4-5-20250929",
+                max_tokens=4096,
+                system=self.system_instruction,
+                messages=[{
+                    "role": "user",
+                    "content": full_prompt
+                }]
+            )
 
             logger.info(f"{self.agent_name} completed analysis")
 
             return {
                 "agent": self.agent_name,
-                "content": response.text,
+                "content": message.content[0].text,
                 "status": "success"
             }
 
@@ -78,7 +83,7 @@ class MatchAnalysisOrchestrator:
         Initialize the orchestrator with sub-agents.
 
         Args:
-            api_key: Google Gemini API key
+            api_key: Claude API key
         """
         self.api_key = api_key
         logger.info("Initializing Match Analysis Orchestrator")
