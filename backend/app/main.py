@@ -1,10 +1,11 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
+from datetime import datetime
 import logging
 
 from app.config import settings
-from app.models import ChatRequest, ChatResponse, Message, MatchAnalysisRequest, MatchAnalysisResponse
+from app.models import ChatRequest, ChatResponse, Message, MatchAnalysisRequest, MatchDataResponse
 from app.mcp_client import MCPClient
 from app.gemini_client import GeminiClient
 from app.match_analyzer import MatchAnalysisOrchestrator
@@ -141,17 +142,17 @@ async def chat(request: ChatRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.post("/match-analysis", response_model=MatchAnalysisResponse)
+@app.post("/match-analysis", response_model=MatchDataResponse)
 async def analyze_match(request: MatchAnalysisRequest):
     """
-    Multi-agent match analysis endpoint
-    Fetches match details and runs comprehensive analysis using specialized sub-agents
+    Match data endpoint
+    Fetches match details from MCP/OpenDota and returns raw data for frontend visualization
     """
-    if not mcp_client or not match_orchestrator:
-        raise HTTPException(status_code=503, detail="Services not initialized")
+    if not mcp_client:
+        raise HTTPException(status_code=503, detail="MCP client not initialized")
 
     try:
-        logger.info(f"Received match analysis request for match ID: {request.match_id}")
+        logger.info(f"Received match data request for match ID: {request.match_id}")
 
         # Fetch match details from MCP
         match_data = await mcp_client.call_tool(
@@ -166,15 +167,17 @@ async def analyze_match(request: MatchAnalysisRequest):
                 detail="Match is not parsed. Please use request_parse_match first and wait for parsing to complete."
             )
 
-        # Run multi-agent analysis
-        analysis_result = await match_orchestrator.analyze_match(match_data)
-
-        return MatchAnalysisResponse(**analysis_result)
+        # Return raw match data for frontend visualization
+        return MatchDataResponse(
+            match_id=request.match_id,
+            fetch_timestamp=datetime.now().isoformat(),
+            data=match_data
+        )
 
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error processing match analysis: {e}")
+        logger.error(f"Error fetching match data: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
