@@ -25,3 +25,4 @@ An AI-powered Dota 2 chatbot assistant that uses OpenDota data through an MCP se
 │   (OpenDota API wrapper)    │
 └─────────────────────────────┘
 ```
+# test

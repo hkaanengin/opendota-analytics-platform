@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
+from datetime import datetime
 
 
 class Message(BaseModel):
@@ -21,6 +22,7 @@ class MatchAnalysisRequest(BaseModel):
     match_id: int
 
 
+# Legacy models (kept for backwards compatibility)
 class AnalysisSection(BaseModel):
     title: str
     agent: str
@@ -42,3 +44,11 @@ class MatchAnalysisResponse(BaseModel):
     agents_used: int
     sections: Dict[str, AnalysisSection]
     metadata: MatchMetadata
+
+
+# New models for raw match data (no agents)
+class MatchDataResponse(BaseModel):
+    """Raw match data from MCP/OpenDota - no agent processing"""
+    match_id: int
+    fetch_timestamp: str
+    data: Dict[str, Any]  # Raw MCP response data
