@@ -102,7 +102,7 @@
 
 .grid-2 {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 24px;
   margin-bottom: 32px;
 }
@@ -214,50 +214,166 @@
   color: #64748b;
 }
 
-/* Charts */
-.chart-wrapper {
-  text-align: center;
-}
-
-.chart-svg {
+/* Advantage Chart */
+.advantage-chart-container {
+  position: relative;
   width: 100%;
-  height: 200px;
+  cursor: crosshair;
 }
 
-.chart-subtitle {
-  font-size: 0.875rem;
+.advantage-chart-svg {
+  width: 100%;
+  height: 400px;
+  display: block;
+}
+
+/* Advantage Chart Tooltip */
+.advantage-tooltip {
+  position: absolute;
+  top: 10px;
+  transform: translateX(-50%);
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid #475569;
+  border-radius: 8px;
+  padding: 12px 16px;
+  pointer-events: none;
+  z-index: 20;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  min-width: 140px;
+}
+
+.advantage-tooltip-time {
+  font-size: 0.8rem;
   color: #94a3b8;
-  margin-top: 8px;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.advantage-tooltip-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.advantage-tooltip-row:last-child {
+  margin-bottom: 0;
+}
+
+.advantage-tooltip-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.advantage-tooltip-dot.gold {
+  background: #fbbf24;
+}
+
+.advantage-tooltip-dot.xp {
+  background: #a78bfa;
+}
+
+.advantage-tooltip-label {
+  font-size: 0.85rem;
+  color: #94a3b8;
+}
+
+.advantage-tooltip-value {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-left: auto;
+}
+
+.advantage-tooltip-value.radiant {
+  color: #4ade80;
+}
+
+.advantage-tooltip-value.dire {
+  color: #f87171;
+}
+
+/* Advantage Chart Legend */
+.advantage-legend {
+  display: flex;
+  justify-content: center;
+  gap: 32px;
+  margin-top: 16px;
+  padding-top: 12px;
+}
+
+.advantage-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: #94a3b8;
+}
+
+.advantage-legend-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.advantage-legend-dot.gold {
+  background: #fbbf24;
+}
+
+.advantage-legend-dot.xp {
+  background: #a78bfa;
 }
 
 /* Timeline */
 .timeline-container {
   position: relative;
-  height: 200px;
+  display: flex;
+  flex-direction: column;
   margin: 32px 0;
-  padding: 20px 0;
+  padding: 10px 0;
+}
+
+.timeline-row {
+  position: relative;
+  height: 50px;
+  width: 100%;
+}
+
+.teamfights-row {
+  margin-bottom: 4px;
+}
+
+.objectives-row {
+  margin-top: 4px;
 }
 
 .timeline-line {
-  position: absolute;
-  top: 50%;
-  left: 0;
-  right: 0;
+  position: relative;
+  width: 100%;
   height: 4px;
   background: linear-gradient(to right, #334155, #475569, #334155);
   border-radius: 2px;
+  flex-shrink: 0;
 }
 
 .timeline-marker {
   position: absolute;
-  top: 50%;
-  transform: translate(-50%, -50%);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
+.teamfights-row .timeline-marker {
+  bottom: 0;
+  transform: translateX(-50%);
+}
+
+.objectives-row .timeline-marker {
+  top: 0;
+  transform: translateX(-50%);
+}
+
 .timeline-marker:hover {
-  transform: translate(-50%, -50%) scale(1.2);
+  transform: translateX(-50%) scale(1.2);
 }
 
 .teamfight-marker {
@@ -280,17 +396,124 @@
 }
 
 .objective-marker {
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   background: #fbbf24;
   border: 2px solid #0f172a;
   border-radius: 3px;
   box-shadow: 0 0 8px rgba(251, 191, 36, 0.5);
 }
 
+/* Team-based objective colors */
+.objective-marker.radiant-obj {
+  background: #4ade80;
+  box-shadow: 0 0 8px rgba(74, 222, 128, 0.5);
+}
+
+.objective-marker.dire-obj {
+  background: #f87171;
+  box-shadow: 0 0 8px rgba(248, 113, 113, 0.5);
+}
+
+/* Roshan - purple, larger, round */
 .objective-marker.roshan {
+  width: 18px;
+  height: 18px;
   background: #8b5cf6;
-  box-shadow: 0 0 8px rgba(139, 92, 246, 0.5);
+  border-radius: 50%;
+  box-shadow: 0 0 10px rgba(139, 92, 246, 0.6);
+}
+
+/* Tormentor - cyan diamond */
+.objective-marker.tormentor {
+  background: #22d3ee;
+  transform: translateX(-50%) rotate(45deg);
+  box-shadow: 0 0 8px rgba(34, 211, 238, 0.5);
+}
+
+/* First blood - red circle */
+.objective-marker.first-blood {
+  background: #ef4444;
+  border-radius: 50%;
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.6);
+}
+
+/* Courier - small orange */
+.objective-marker.courier {
+  width: 12px;
+  height: 12px;
+  background: #fb923c;
+  border-radius: 50%;
+  box-shadow: 0 0 6px rgba(251, 146, 60, 0.5);
+}
+
+/* Objective Icon Markers in Timeline */
+.objective-icon-marker {
+  width: auto;
+  height: auto;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+.objective-icon-wrapper {
+  position: relative;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.objective-icon-wrapper .objective-icon-glow {
+  position: absolute;
+  inset: -2px;
+  border-radius: 50%;
+  opacity: 0.6;
+  filter: blur(4px);
+}
+
+.objective-icon-wrapper.radiant .objective-icon-glow {
+  background: #4ade80;
+}
+
+.objective-icon-wrapper.dire .objective-icon-glow {
+  background: #f87171;
+}
+
+.objective-icon-wrapper .objective-icon {
+  width: 20px;
+  height: 20px;
+  position: relative;
+  z-index: 1;
+  filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.8));
+}
+
+.objective-icon-wrapper.radiant .objective-icon {
+  color: #4ade80;
+}
+
+.objective-icon-wrapper.dire .objective-icon {
+  color: #f87171;
+}
+
+/* Default color for objectives without team */
+.objective-icon-wrapper:not(.radiant):not(.dire) .objective-icon {
+  color: #fbbf24;
+}
+
+.objective-icon-wrapper:not(.radiant):not(.dire) .objective-icon-glow {
+  background: #fbbf24;
+}
+
+/* Roshan icon special styling */
+.objective-icon-wrapper .roshan-icon {
+  color: #a855f7;
+}
+
+.objective-icon-marker:hover .objective-icon-wrapper {
+  transform: scale(1.2);
+  transition: transform 0.2s ease;
 }
 
 /* Timeline Tooltip */
@@ -318,6 +541,21 @@
   transform: translateX(-50%);
   border: 6px solid transparent;
   border-top-color: #1e293b;
+}
+
+/* Tooltip below the marker (for objectives row) */
+.timeline-tooltip.below {
+  bottom: auto;
+  top: 100%;
+  margin-bottom: 0;
+  margin-top: 10px;
+}
+
+.timeline-tooltip.below::after {
+  top: auto;
+  bottom: 100%;
+  border-top-color: transparent;
+  border-bottom-color: #1e293b;
 }
 
 .tooltip-title {
@@ -368,8 +606,33 @@
 .legend-dot.radiant-win { background: #22c55e; }
 .legend-dot.dire-win { background: #ef4444; }
 .legend-dot.neutral { background: #a855f7; }
-.legend-dot.objective { background: #fbbf24; border-radius: 2px; }
-.legend-dot.roshan { background: #8b5cf6; border-radius: 2px; }
+
+/* Legend Icon Wrappers */
+.legend-icon-wrapper {
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fbbf24;
+}
+
+.legend-icon-wrapper.radiant {
+  color: #4ade80;
+}
+
+.legend-icon-wrapper.dire {
+  color: #f87171;
+}
+
+.legend-icon-wrapper svg {
+  width: 16px;
+  height: 16px;
+}
+
+.legend-icon-wrapper .roshan-icon {
+  color: #a855f7;
+}
 
 /* Teamfight Details */
 .teamfight-details {
@@ -453,8 +716,15 @@
 }
 
 .player-card:hover {
-  transform: scale(1.03);
   box-shadow: 0 0 20px rgba(34, 197, 94, 0.2);
+}
+
+/* Expanded Player Card */
+.player-card.expanded {
+  position: relative;
+  z-index: 10;
+  transform: scale(1.08);
+  min-width: 280px;
 }
 
 .player-card.dire {
@@ -464,6 +734,10 @@
 
 .player-card.dire:hover {
   box-shadow: 0 0 20px rgba(239, 68, 68, 0.2);
+}
+
+.player-card.dire.expanded {
+  transform: scale(1.08);
 }
 
 .player-hero {
@@ -503,6 +777,90 @@
 
 .player-stat-row .stat-value.gold { color: #fbbf24; }
 .player-stat-row .stat-value.damage { color: #f87171; }
+.player-stat-row .stat-value.healing { color: #4ade80; }
+
+/* Expanded Stats */
+.expanded-stats {
+  margin-top: 8px;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.expanded-divider {
+  height: 1px;
+  background: linear-gradient(to right, transparent, #475569, transparent);
+  margin: 12px 0;
+}
+
+.expanded-section-title {
+  font-size: 0.7rem;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 10px;
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+/* Final Build */
+.final-build-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.final-build-item {
+  background: rgba(71, 85, 105, 0.5);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  color: #e2e8f0;
+}
+
+.neutral-item {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin-top: 4px;
+}
+
+.neutral-item-name {
+  color: #c084fc;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+/* Benchmarks Grid */
+.benchmarks-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.benchmark-mini {
+  text-align: center;
+  background: rgba(71, 85, 105, 0.3);
+  padding: 4px;
+  border-radius: 4px;
+}
+
+.benchmark-mini-label {
+  font-size: 0.6rem;
+  color: #64748b;
+  text-transform: uppercase;
+}
+
+.benchmark-mini-value {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #a78bfa;
+}
 
 /* Benchmark */
 .benchmark-section {
@@ -577,11 +935,6 @@
 }
 
 /* Responsive Design */
-@media (max-width: 1200px) {
-  .grid-2 {
-    grid-template-columns: 1fr;
-  }
-}
 
 @media (max-width: 768px) {
   .dashboard-container {
@@ -612,5 +965,14 @@
 
   .teamfight-stats-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .player-card.expanded {
+    transform: scale(1.02);
+    min-width: auto;
+  }
+
+  .benchmarks-grid {
+    grid-template-columns: repeat(3, 1fr);
   }
 }
