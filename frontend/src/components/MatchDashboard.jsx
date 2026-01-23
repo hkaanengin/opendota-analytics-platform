@@ -925,16 +925,43 @@ function MatchDashboard() {
 // Player Card Component
 function PlayerCard({ player, team, formatItemName }) {
   const [isHovered, setIsHovered] = useState(false);
-  const benchmarkPct = player.benchmarks?.gold_per_min?.pct || 0;
+
+  // Calculate average of all benchmarks (excluding tower_damage)
+  const calculateAvgBenchmark = () => {
+    if (!player.benchmarks) return 0;
+    const benchmarkKeys = [
+      'gold_per_min',
+      'xp_per_min',
+      'kills_per_min',
+      'last_hits_per_min',
+      'hero_damage_per_min',
+      'hero_healing_per_min'
+    ];
+    const values = benchmarkKeys
+      .map(key => player.benchmarks[key]?.pct)
+      .filter(val => val != null);
+    if (values.length === 0) return 0;
+    return values.reduce((sum, val) => sum + val, 0) / values.length;
+  };
+
+  const benchmarkPct = calculateAvgBenchmark();
 
   const formatNumber = (num) => {
     if (num >= 1000) return (num / 1000).toFixed(1) + 'k';
     return num?.toFixed?.(0) || num || 0;
   };
 
+  const getBenchmarkColor = (pct) => {
+    if (pct < 20) return 'benchmark-red';
+    if (pct < 40) return 'benchmark-orange';
+    if (pct < 60) return 'benchmark-yellow';
+    if (pct < 80) return 'benchmark-blue';
+    return 'benchmark-green';
+  };
+
   return (
     <div
-      className={`player-card ${team} ${isHovered ? 'expanded' : ''}`}
+      className={`player-card ${team}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -942,144 +969,26 @@ function PlayerCard({ player, team, formatItemName }) {
       {player.personaname && <div className="player-name">{player.personaname}</div>}
 
       <div className="player-stats">
-        {/* Basic Stats - Always Visible */}
         <div className="player-stat-row">
           <span className="stat-label">K/D/A</span>
           <span className="stat-value">{player.kills}/{player.deaths}/{player.assists}</span>
         </div>
         <div className="player-stat-row">
           <span className="stat-label">Net Worth</span>
-          <span className="stat-value gold">{formatNumber(player.net_worth)}</span>
+          <span className="stat-value gold">{(player.net_worth / 1000).toFixed(1)}k</span>
         </div>
         <div className="player-stat-row">
-          <span className="stat-label">GPM / XPM</span>
-          <span className="stat-value gold">{player.gold_per_min} / {player.xp_per_min}</span>
+          <span className="stat-label">GPM</span>
+          <span className="stat-value gold">{player.gold_per_min}</span>
         </div>
         <div className="player-stat-row">
-          <span className="stat-label">Hero Damage</span>
-          <span className="stat-value damage">{formatNumber(player.hero_damage)}</span>
+          <span className="stat-label">Damage</span>
+          <span className="stat-value damage">{(player.hero_damage / 1000).toFixed(1)}k</span>
         </div>
 
-        {/* Expanded Stats - Visible on Hover */}
-        {isHovered && (
-          <div className="expanded-stats">
-            <div className="expanded-divider" />
-
-            {/* Combat Stats */}
-            <div className="expanded-section-title">Combat</div>
-            <div className="player-stat-row">
-              <span className="stat-label">Tower Damage</span>
-              <span className="stat-value">{formatNumber(player.tower_damage)}</span>
-            </div>
-            <div className="player-stat-row">
-              <span className="stat-label">Healing</span>
-              <span className="stat-value healing">{formatNumber(player.hero_healing)}</span>
-            </div>
-            <div className="player-stat-row">
-              <span className="stat-label">Damage Taken</span>
-              <span className="stat-value damage">{formatNumber(player.damage_taken)}</span>
-            </div>
-
-            {/* Farming Stats */}
-            <div className="expanded-section-title">Farming</div>
-            <div className="player-stat-row">
-              <span className="stat-label">Last Hits / Denies</span>
-              <span className="stat-value">{player.last_hits} / {player.denies}</span>
-            </div>
-
-            {/* Game Stats */}
-            <div className="expanded-section-title">Game</div>
-            <div className="player-stat-row">
-              <span className="stat-label">Time Dead</span>
-              <span className="stat-value">{player.time_spent_dead || '0:00'}</span>
-            </div>
-            <div className="player-stat-row">
-              <span className="stat-label">Fight Participation</span>
-              <span className="stat-value">{((player.teamfight_participation || 0) * 100).toFixed(0)}%</span>
-            </div>
-
-            {/* Support Stats */}
-            {player.support_stats && (
-              <>
-                <div className="expanded-section-title">Support</div>
-                <div className="player-stat-row">
-                  <span className="stat-label">Wards Placed</span>
-                  <span className="stat-value">{player.support_stats.observer_placed || 0} / {player.support_stats.sentry_placed || 0}</span>
-                </div>
-                <div className="player-stat-row">
-                  <span className="stat-label">Camps Stacked</span>
-                  <span className="stat-value">{player.support_stats.camp_stacked || 0}</span>
-                </div>
-                <div className="player-stat-row">
-                  <span className="stat-label">Stun Duration</span>
-                  <span className="stat-value">{(player.support_stats.stuns || 0).toFixed(1)}s</span>
-                </div>
-              </>
-            )}
-
-            {/* Final Build */}
-            {player.items?.final_build && player.items.final_build.length > 0 && (
-              <>
-                <div className="expanded-section-title">Final Build</div>
-                <div className="final-build-list">
-                  {player.items.final_build.map((item, i) => (
-                    <span key={i} className="final-build-item">{item}</span>
-                  ))}
-                </div>
-                {player.items.neutral && (
-                  <div className="neutral-item">
-                    <span className="stat-label">Neutral:</span>
-                    <span className="neutral-item-name">{player.items.neutral}</span>
-                  </div>
-                )}
-              </>
-            )}
-
-            {/* Benchmarks */}
-            {player.benchmarks && (
-              <>
-                <div className="expanded-section-title">Benchmarks</div>
-                <div className="benchmarks-grid">
-                  {player.benchmarks.gold_per_min && (
-                    <div className="benchmark-mini">
-                      <div className="benchmark-mini-label">GPM</div>
-                      <div className="benchmark-mini-value">{player.benchmarks.gold_per_min.pct.toFixed(0)}%</div>
-                    </div>
-                  )}
-                  {player.benchmarks.xp_per_min && (
-                    <div className="benchmark-mini">
-                      <div className="benchmark-mini-label">XPM</div>
-                      <div className="benchmark-mini-value">{player.benchmarks.xp_per_min.pct.toFixed(0)}%</div>
-                    </div>
-                  )}
-                  {player.benchmarks.kills_per_min && (
-                    <div className="benchmark-mini">
-                      <div className="benchmark-mini-label">Kills</div>
-                      <div className="benchmark-mini-value">{player.benchmarks.kills_per_min.pct.toFixed(0)}%</div>
-                    </div>
-                  )}
-                  {player.benchmarks.last_hits_per_min && (
-                    <div className="benchmark-mini">
-                      <div className="benchmark-mini-label">LH</div>
-                      <div className="benchmark-mini-value">{player.benchmarks.last_hits_per_min.pct.toFixed(0)}%</div>
-                    </div>
-                  )}
-                  {player.benchmarks.hero_damage_per_min && (
-                    <div className="benchmark-mini">
-                      <div className="benchmark-mini-label">Damage</div>
-                      <div className="benchmark-mini-value">{player.benchmarks.hero_damage_per_min.pct.toFixed(0)}%</div>
-                    </div>
-                  )}
-                </div>
-              </>
-            )}
-          </div>
-        )}
-
-        {/* Basic Benchmark Bar - Always Visible */}
-        {!isHovered && player.benchmarks?.gold_per_min && (
+        {player.benchmarks && benchmarkPct > 0 && (
           <div className="benchmark-section">
-            <div className="benchmark-title">Performance</div>
+            <div className="benchmark-title">Performance (Avg)</div>
             <div className="benchmark-bar">
               <div className={`benchmark-fill ${team}`} style={{ width: `${benchmarkPct}%` }} />
             </div>
@@ -1087,8 +996,7 @@ function PlayerCard({ player, team, formatItemName }) {
           </div>
         )}
 
-        {/* Item Timings - Only when not expanded */}
-        {!isHovered && player.items?.key_timings && player.items.key_timings.length > 0 && (
+        {player.items?.key_timings && player.items.key_timings.length > 0 && (
           <div className="item-timings">
             <div className="item-timing-title">Key Item Timings</div>
             <div className="item-timing-list">
@@ -1102,6 +1010,150 @@ function PlayerCard({ player, team, formatItemName }) {
           </div>
         )}
       </div>
+
+      {/* Floating Popup on Hover */}
+      {isHovered && (
+        <div className={`player-popup ${team}`}>
+          <div className="popup-header">
+            <h4 className={`popup-hero ${team}`}>{player.hero_name}</h4>
+            {player.personaname && <span className="popup-name">{player.personaname}</span>}
+          </div>
+
+          <div className="popup-content">
+            {/* Two Column Layout */}
+            <div className="popup-columns">
+              {/* Left Column */}
+              <div className="popup-column">
+                <div className="popup-section-title">Combat</div>
+                <div className="popup-stat">
+                  <span>K/D/A</span>
+                  <span>{player.kills}/{player.deaths}/{player.assists}</span>
+                </div>
+                <div className="popup-stat">
+                  <span>Hero Damage</span>
+                  <span className="damage">{formatNumber(player.hero_damage)}</span>
+                </div>
+                <div className="popup-stat">
+                  <span>Tower Damage</span>
+                  <span>{formatNumber(player.tower_damage)}</span>
+                </div>
+                <div className="popup-stat">
+                  <span>Healing</span>
+                  <span className="healing">{formatNumber(player.hero_healing)}</span>
+                </div>
+                <div className="popup-stat">
+                  <span>Damage Taken</span>
+                  <span className="damage">{formatNumber(player.damage_taken)}</span>
+                </div>
+
+                <div className="popup-section-title">Economy</div>
+                <div className="popup-stat">
+                  <span>Net Worth</span>
+                  <span className="gold">{formatNumber(player.net_worth)}</span>
+                </div>
+                <div className="popup-stat">
+                  <span>GPM / XPM</span>
+                  <span className="gold">{player.gold_per_min} / {player.xp_per_min}</span>
+                </div>
+                <div className="popup-stat">
+                  <span>Last Hits</span>
+                  <span>{player.last_hits} / {player.denies}</span>
+                </div>
+              </div>
+
+              {/* Right Column */}
+              <div className="popup-column">
+                <div className="popup-section-title">Game</div>
+                <div className="popup-stat">
+                  <span>Time Dead</span>
+                  <span>{player.time_spent_dead || '0:00'}</span>
+                </div>
+                <div className="popup-stat">
+                  <span>Fight Participation</span>
+                  <span>{((player.teamfight_participation || 0) * 100).toFixed(0)}%</span>
+                </div>
+
+                {player.support_stats && (
+                  <>
+                    <div className="popup-section-title">Support</div>
+                    <div className="popup-stat">
+                      <span>Wards(O/S)</span>
+                      <span>{player.support_stats.observer_placed || 0} / {player.support_stats.sentry_placed || 0}</span>
+                    </div>
+                    <div className="popup-stat">
+                      <span>Camps Stacked</span>
+                      <span>{player.support_stats.camp_stacked || 0}</span>
+                    </div>
+                    <div className="popup-stat">
+                      <span>Stuns</span>
+                      <span>{(player.support_stats.stuns || 0).toFixed(1)}s</span>
+                    </div>
+                  </>
+                )}
+
+                {player.benchmarks && (
+                  <>
+                    <div className="popup-section-title">Benchmarks</div>
+                    <div className="popup-benchmarks">
+                      {player.benchmarks.gold_per_min && (
+                        <div className="popup-benchmark">
+                          <span className={`popup-benchmark-value ${getBenchmarkColor(player.benchmarks.gold_per_min.pct)}`}>{player.benchmarks.gold_per_min.pct.toFixed(0)}%</span>
+                          <span className="popup-benchmark-label">GPM</span>
+                        </div>
+                      )}
+                      {player.benchmarks.xp_per_min && (
+                        <div className="popup-benchmark">
+                          <span className={`popup-benchmark-value ${getBenchmarkColor(player.benchmarks.xp_per_min.pct)}`}>{player.benchmarks.xp_per_min.pct.toFixed(0)}%</span>
+                          <span className="popup-benchmark-label">XPM</span>
+                        </div>
+                      )}
+                      {player.benchmarks.last_hits_per_min && (
+                        <div className="popup-benchmark">
+                          <span className={`popup-benchmark-value ${getBenchmarkColor(player.benchmarks.last_hits_per_min.pct)}`}>{player.benchmarks.last_hits_per_min.pct.toFixed(0)}%</span>
+                          <span className="popup-benchmark-label">LH</span>
+                        </div>
+                      )}
+                      {player.benchmarks.kills_per_min && (
+                        <div className="popup-benchmark">
+                          <span className={`popup-benchmark-value ${getBenchmarkColor(player.benchmarks.kills_per_min.pct)}`}>{player.benchmarks.kills_per_min.pct.toFixed(0)}%</span>
+                          <span className="popup-benchmark-label">Kills</span>
+                        </div>
+                      )}
+                      {player.benchmarks.hero_damage_per_min && (
+                        <div className="popup-benchmark">
+                          <span className={`popup-benchmark-value ${getBenchmarkColor(player.benchmarks.hero_damage_per_min.pct)}`}>{player.benchmarks.hero_damage_per_min.pct.toFixed(0)}%</span>
+                          <span className="popup-benchmark-label">DMG</span>
+                        </div>
+                      )}
+                      {player.benchmarks.hero_healing_per_min && (
+                        <div className="popup-benchmark">
+                          <span className={`popup-benchmark-value ${getBenchmarkColor(player.benchmarks.hero_healing_per_min.pct)}`}>{player.benchmarks.hero_healing_per_min.pct.toFixed(0)}%</span>
+                          <span className="popup-benchmark-label">Heal</span>
+                        </div>
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* Final Build - Full Width */}
+            {player.items?.final_build && player.items.final_build.filter(item => item != null).length > 0 && (
+              <div className="popup-build">
+                <div className="popup-section-title">Final Build</div>
+                <div className="popup-items">
+                  {player.items.final_build.filter(item => item != null).map((item, i) => (
+                    <span key={i} className="popup-item">{item}</span>
+                  ))}
+                  {player.items.neutral && (
+                    <span className="popup-item neutral">{player.items.neutral}</span>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
