@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getMatchAnalysis } from '../services/api';
+import { getMatchAnalysis, getTeamfightSummary } from '../services/api';
 import './MatchDashboard.css';
 
 // Icon components
@@ -460,12 +460,55 @@ function MatchDashboard() {
   const [error, setError] = useState(null);
   const [selectedTeamfight, setSelectedTeamfight] = useState(null);
   const [hoveredItem, setHoveredItem] = useState(null);
+  const [teamfightSummary, setTeamfightSummary] = useState(null);
+  const [summaryLoading, setSummaryLoading] = useState(false);
+  const summaryCacheRef = useRef({});  // Cache summaries by teamfight index
 
   useEffect(() => {
     if (matchId) {
       fetchMatchData(matchId);
+      // Clear summary cache when loading a new match
+      summaryCacheRef.current = {};
+      setSelectedTeamfight(null);
+      setTeamfightSummary(null);
     }
   }, [matchId]);
+
+  // Fetch teamfight summary when a teamfight is selected (with caching)
+  useEffect(() => {
+    if (selectedTeamfight === null || !matchData?.teamfights_summary?.teamfights?.[selectedTeamfight]) {
+      setTeamfightSummary(null);
+      return;
+    }
+
+    // Check cache first
+    if (summaryCacheRef.current[selectedTeamfight]) {
+      setTeamfightSummary(summaryCacheRef.current[selectedTeamfight]);
+      setSummaryLoading(false);
+      return;
+    }
+
+    // Fetch from API
+    const fetchSummary = async () => {
+      setSummaryLoading(true);
+      setTeamfightSummary(null);
+      try {
+        const teamfight = matchData.teamfights_summary.teamfights[selectedTeamfight];
+        const response = await getTeamfightSummary(teamfight);
+        const summary = response.summary;
+        setTeamfightSummary(summary);
+        // Cache the result
+        summaryCacheRef.current[selectedTeamfight] = summary;
+      } catch (err) {
+        console.error('Failed to fetch teamfight summary:', err);
+        setTeamfightSummary('Failed to generate summary.');
+      } finally {
+        setSummaryLoading(false);
+      }
+    };
+
+    fetchSummary();
+  }, [selectedTeamfight, matchData]);
 
   const fetchMatchData = async (id) => {
     setLoading(true);
@@ -891,6 +934,14 @@ function MatchDashboard() {
                 </div>
                 <div className="teamfight-stat-label">Gold Swing</div>
               </div>
+            </div>
+            <div className="teamfight-summary">
+              <div className="teamfight-summary-label">AI Summary</div>
+              {summaryLoading ? (
+                <div className="teamfight-summary-loading">Generating summary...</div>
+              ) : teamfightSummary ? (
+                <div className="teamfight-summary-text">{teamfightSummary}</div>
+              ) : null}
             </div>
           </div>
         )}

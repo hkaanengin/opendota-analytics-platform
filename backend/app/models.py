@@ -52,3 +52,13 @@ class MatchDataResponse(BaseModel):
     match_id: int
     fetch_timestamp: str
     data: Dict[str, Any]  # Raw MCP response data
+
+
+class TeamfightSummaryRequest(BaseModel):
+    """Request for a single teamfight summary"""
+    teamfight: Dict[str, Any]  # Single teamfight object from match data
+
+
+class TeamfightSummaryResponse(BaseModel):
+    """LLM-generated summary of a teamfight"""
+    summary: str
