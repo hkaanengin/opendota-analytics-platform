@@ -1,9 +1,10 @@
-import anthropic
 import asyncio
 import logging
-import json
-from typing import Dict, Any, List
+from typing import Dict, Any, List, TYPE_CHECKING
 from datetime import datetime
+
+if TYPE_CHECKING:
+    from app.llm_client import BaseLLMClient
 
 logger = logging.getLogger(__name__)
 
@@ -13,17 +14,17 @@ class SubAgent:
     A specialized sub-agent that performs focused analysis on a specific aspect of match data.
     """
 
-    def __init__(self, api_key: str, agent_name: str, system_instruction: str):
+    def __init__(self, llm_client: "BaseLLMClient", agent_name: str, system_instruction: str):
         """
         Initialize a sub-agent with specialized instructions.
 
         Args:
-            api_key: Claude API key
+            llm_client: LLM client instance (Gemini or Claude)
             agent_name: Name of this agent (e.g., "Overview Agent")
             system_instruction: Detailed instructions for what this agent should analyze
         """
         self.agent_name = agent_name
-        self.client = anthropic.AsyncAnthropic(api_key=api_key)
+        self.llm_client = llm_client
         self.system_instruction = system_instruction
         logger.info(f"Initialized {agent_name}")
 
@@ -41,26 +42,18 @@ class SubAgent:
         try:
             logger.info(f"{self.agent_name} starting analysis...")
 
-            # Prepare the input
-            data_json = json.dumps(data, indent=2)
-            full_prompt = f"{prompt}\n\nData to analyze:\n{data_json}"
-
-            # Generate analysis using Claude (async, parallel-capable)
-            message = await self.client.messages.create(
-                model="claude-sonnet-4-5-20250929",
-                max_tokens=4096,
-                system=self.system_instruction,
-                messages=[{
-                    "role": "user",
-                    "content": full_prompt
-                }]
+            # Use the LLM client's analyze method
+            result = await self.llm_client.analyze(
+                data=data,
+                prompt=prompt,
+                system_instruction=self.system_instruction
             )
 
             logger.info(f"{self.agent_name} completed analysis")
 
             return {
                 "agent": self.agent_name,
-                "content": message.content[0].text,
+                "content": result,
                 "status": "success"
             }
 
@@ -78,15 +71,14 @@ class MatchAnalysisOrchestrator:
     Orchestrates multiple sub-agents to analyze different aspects of a Dota 2 match.
     """
 
-    def __init__(self, api_key: str):
+    def __init__(self, llm_client: "BaseLLMClient"):
         """
         Initialize the orchestrator with sub-agents.
 
         Args:
-            api_key: Claude API key
+            llm_client: LLM client instance (Gemini or Claude)
         """
-        self.api_key = api_key
-        logger.info("Initializing Match Analysis Orchestrator")
+        self.llm_client = llm_client
 
         # Define agent configurations
         self.agent_configs = {
@@ -151,7 +143,7 @@ class MatchAnalysisOrchestrator:
         """Initialize all sub-agents (done per request to avoid keeping models in memory)"""
         for agent_key, config in self.agent_configs.items():
             self.agents[agent_key] = SubAgent(
-                api_key=self.api_key,
+                llm_client=self.llm_client,
                 agent_name=config["name"],
                 system_instruction=config["system_instruction"]
             )

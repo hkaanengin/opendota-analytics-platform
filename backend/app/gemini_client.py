@@ -3,10 +3,12 @@ from typing import List, Dict, Any, Optional
 import logging
 import json
 
+from app.llm_client import BaseLLMClient
+
 logger = logging.getLogger(__name__)
 
 
-class GeminiClient:
+class GeminiClient(BaseLLMClient):
     def __init__(self, api_key: str):
         genai.configure(api_key=api_key)
 
@@ -124,3 +126,39 @@ class GeminiClient:
                     content_items.append(json.dumps(item.data))
             return "\n".join(content_items)
         return str(result)
+
+    async def analyze(
+        self,
+        data: Dict[str, Any],
+        prompt: str,
+        system_instruction: str
+    ) -> str:
+        """
+        Perform analysis with custom system instruction (for sub-agents).
+
+        Args:
+            data: The data to analyze
+            prompt: The analysis prompt
+            system_instruction: Custom system instruction for the analysis
+
+        Returns:
+            The analysis result text
+        """
+        try:
+            # Create a model with the custom system instruction
+            analysis_model = genai.GenerativeModel(
+                'models/gemini-2.5-flash',
+                system_instruction=system_instruction
+            )
+
+            # Prepare the full prompt with data
+            data_json = json.dumps(data, indent=2)
+            full_prompt = f"{prompt}\n\nData to analyze:\n{data_json}"
+
+            # Generate response
+            response = analysis_model.generate_content(full_prompt)
+            return response.text
+
+        except Exception as e:
+            logger.error(f"Error in Gemini analysis: {e}")
+            raise
