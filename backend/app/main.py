@@ -7,7 +7,9 @@ import logging
 from app.config import settings
 from app.models import ChatRequest, ChatResponse, Message, MatchAnalysisRequest, MatchDataResponse
 from app.mcp_client import MCPClient
+from app.llm_client import BaseLLMClient
 from app.gemini_client import GeminiClient
+from app.claude_client import ClaudeClient
 from app.match_analyzer import MatchAnalysisOrchestrator
 
 
@@ -17,14 +19,14 @@ logger = logging.getLogger(__name__)
 
 # Global clients
 mcp_client: MCPClient | None = None
-gemini_client: GeminiClient | None = None
+chat_client: BaseLLMClient | None = None
 match_orchestrator: MatchAnalysisOrchestrator | None = None
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Startup and shutdown events"""
-    global mcp_client, gemini_client, match_orchestrator
+    global mcp_client, chat_client, match_orchestrator
 
     # Startup
     logger.info("Starting up application...")
@@ -34,13 +36,25 @@ async def lifespan(app: FastAPI):
         await mcp_client.connect()
         logger.info("MCP client connected successfully")
 
-        # Initialize Gemini client
-        gemini_client = GeminiClient(api_key=settings.gemini_api_key)
-        logger.info("Gemini client initialized successfully")
+        # Initialize chat LLM client based on configuration
+        if settings.chat_llm_provider == "gemini":
+            chat_client = GeminiClient(api_key=settings.gemini_api_key)
+            logger.info("Chat LLM client created: Gemini")
+        else:
+            chat_client = ClaudeClient(api_key=settings.claude_api_key)
+            logger.info("Chat LLM client created: Claude")
 
-        # Initialize Match Analysis Orchestrator (using Claude API)
-        match_orchestrator = MatchAnalysisOrchestrator(api_key=settings.claude_api_key)
-        logger.info("Match Analysis Orchestrator initialized successfully")
+        # Initialize analysis LLM client based on configuration
+        if settings.analysis_llm_provider == "gemini":
+            analysis_client = GeminiClient(api_key=settings.gemini_api_key)
+            logger.info("Analysis LLM client created: Gemini")
+        else:
+            analysis_client = ClaudeClient(api_key=settings.claude_api_key)
+            logger.info("Analysis LLM client created: Claude")
+
+        # Initialize Match Analysis Orchestrator with the analysis client
+        match_orchestrator = MatchAnalysisOrchestrator(llm_client=analysis_client)
+        logger.info("Match Analysis Orchestrator created")
 
     except Exception as e:
         logger.error(f"Failed to initialize clients: {e}")
@@ -97,9 +111,9 @@ async def list_tools():
 async def chat(request: ChatRequest):
     """
     Main chat endpoint
-    Receives a user message and conversation history, processes it with Gemini + MCP tools
+    Receives a user message and conversation history, processes it with configured LLM + MCP tools
     """
-    if not mcp_client or not gemini_client:
+    if not mcp_client or not chat_client:
         raise HTTPException(status_code=503, detail="Services not initialized")
 
     try:
@@ -109,11 +123,11 @@ async def chat(request: ChatRequest):
             for msg in request.conversation_history
         ]
 
-        # Get tools for Gemini
+        # Get tools for LLM
         tools = mcp_client.get_tools_for_gemini()
 
-        # Call Gemini with tools
-        response_text = await gemini_client.chat(
+        # Call LLM with tools
+        response_text = await chat_client.chat(
             user_message=request.message,
             conversation_history=history,
             tools=tools,
