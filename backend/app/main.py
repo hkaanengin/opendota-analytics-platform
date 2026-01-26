@@ -5,12 +5,16 @@ from datetime import datetime
 import logging
 
 from app.config import settings
-from app.models import ChatRequest, ChatResponse, Message, MatchAnalysisRequest, MatchDataResponse
+from app.models import (
+    ChatRequest, ChatResponse, Message,
+    MatchAnalysisRequest, MatchDataResponse,
+    TeamfightSummaryRequest, TeamfightSummaryResponse
+)
 from app.mcp_client import MCPClient
 from app.llm_client import BaseLLMClient
 from app.gemini_client import GeminiClient
 from app.claude_client import ClaudeClient
-from app.match_analyzer import MatchAnalysisOrchestrator
+from app.match_analyzer import TeamfightSummarizer
 
 
 # Configure logging
@@ -20,13 +24,13 @@ logger = logging.getLogger(__name__)
 # Global clients
 mcp_client: MCPClient | None = None
 chat_client: BaseLLMClient | None = None
-match_orchestrator: MatchAnalysisOrchestrator | None = None
+teamfight_summarizer: TeamfightSummarizer | None = None
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Startup and shutdown events"""
-    global mcp_client, chat_client, match_orchestrator
+    global mcp_client, chat_client, teamfight_summarizer
 
     # Startup
     logger.info("Starting up application...")
@@ -52,9 +56,9 @@ async def lifespan(app: FastAPI):
             analysis_client = ClaudeClient(api_key=settings.claude_api_key)
             logger.info("Analysis LLM client created: Claude")
 
-        # Initialize Match Analysis Orchestrator with the analysis client
-        match_orchestrator = MatchAnalysisOrchestrator(llm_client=analysis_client)
-        logger.info("Match Analysis Orchestrator created")
+        # Initialize Teamfight Summarizer with the analysis client
+        teamfight_summarizer = TeamfightSummarizer(llm_client=analysis_client)
+        logger.info("Teamfight Summarizer created")
 
     except Exception as e:
         logger.error(f"Failed to initialize clients: {e}")
@@ -192,6 +196,27 @@ async def analyze_match(request: MatchAnalysisRequest):
         raise
     except Exception as e:
         logger.error(f"Error fetching match data: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/teamfight-summary", response_model=TeamfightSummaryResponse)
+async def get_teamfight_summary(request: TeamfightSummaryRequest):
+    """
+    Generate an LLM summary for a single teamfight.
+    Called when user clicks on a teamfight in the match timeline.
+    """
+    if not teamfight_summarizer:
+        raise HTTPException(status_code=503, detail="Teamfight summarizer not initialized")
+
+    try:
+        logger.info(f"Generating summary for teamfight at {request.teamfight.get('start', 'unknown')}")
+
+        summary = await teamfight_summarizer.summarize_teamfight(request.teamfight)
+
+        return TeamfightSummaryResponse(summary=summary)
+
+    except Exception as e:
+        logger.error(f"Error generating teamfight summary: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 

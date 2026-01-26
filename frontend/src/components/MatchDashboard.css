@@ -696,6 +696,39 @@
   font-size: 0.875rem;
 }
 
+/* Teamfight Summary */
+.teamfight-summary {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #334155;
+}
+
+.teamfight-summary-label {
+  color: #a855f7;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 8px;
+}
+
+.teamfight-summary-loading {
+  color: #94a3b8;
+  font-style: italic;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+.teamfight-summary-text {
+  color: #e2e8f0;
+  line-height: 1.6;
+  font-size: 0.95rem;
+}
+
 /* Players Section */
 .players-section {
   margin-bottom: 32px;
