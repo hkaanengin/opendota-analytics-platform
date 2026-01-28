@@ -26,16 +26,18 @@ class MCPClient:
             tools_response.raise_for_status()
             tools_data = tools_response.json()
 
-            # Store tools - we'll use basic schemas for Gemini
+            # Store tools with their schemas from MCP server
             raw_tools = tools_data.get('tools', [])
 
-            # Add basic input schema for each tool
+            # Use parameter schemas from MCP server if available
             for tool in raw_tools:
-                tool['inputSchema'] = {
-                    "type": "object",
-                    "properties": {},
-                    "required": []
-                }
+                if 'parameters' not in tool:
+                    # Fallback to empty schema if not provided
+                    tool['parameters'] = {
+                        "type": "object",
+                        "properties": {},
+                        "required": []
+                    }
 
             self.available_tools = raw_tools
 
@@ -89,15 +91,15 @@ class MCPClient:
         """Format tools for Gemini function calling"""
         gemini_tools = []
         for tool in self.available_tools:
-            # Use flexible schema since we don't have exact schemas
+            # Use parameter schemas from MCP server
             gemini_tool = {
                 "name": tool["name"],
                 "description": tool.get("description", "No description"),
-                "parameters": {
+                "parameters": tool.get("parameters", {
                     "type": "object",
-                    "properties": {},  # Let Gemini infer from description
+                    "properties": {},
                     "required": []
-                }
+                })
             }
             gemini_tools.append(gemini_tool)
         return gemini_tools
