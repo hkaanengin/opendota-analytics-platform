@@ -21,13 +21,13 @@ class TeamfightSummarizer:
         """
         self.llm_client = llm_client
         self.system_instruction = """You are a Dota 2 analyst providing brief teamfight summaries.
-Given teamfight data, provide a 2-4 sentence summary that captures:
-- Who initiated or key abilities used
-- Key deaths and their impact
-- The outcome (which team won the fight)
-- Notable plays or turning points
+        Given teamfight data, provide a 2-4 sentence summary that captures:
+        - Who initiated or key abilities used
+        - Key deaths and their impact
+        - The outcome (which team won the fight)
+        - Notable plays or turning points
 
-Be specific with hero names. Keep it concise and insightful. Do not use bullet points - write in flowing prose."""
+        Be specific with hero names. Keep it concise and insightful. Do not use bullet points - write in flowing prose."""
 
     async def summarize_teamfight(self, teamfight_data: Dict[str, Any]) -> str:
         """
@@ -77,11 +77,11 @@ Be specific with hero names. Keep it concise and insightful. Do not use bullet p
             winner = "Neither team clearly"
 
         return f"""Summarize this Dota 2 teamfight in 2-4 sentences.
+        
+        Fight timing: {start} to {end}
+        Total deaths: {deaths}
+        Gold swing: {gold_swing} in favor of {winner}
+        Radiant gold gained: {radiant_gold}
+        Dire gold gained: {dire_gold}
 
-Fight timing: {start} to {end}
-Total deaths: {deaths}
-Gold swing: {gold_swing} in favor of {winner}
-Radiant gold gained: {radiant_gold}
-Dire gold gained: {dire_gold}
-
-Focus on which heroes made key plays, who died, and what abilities or items were decisive. The player data below shows each hero's contribution."""
+        Focus on which heroes made key plays, who died, and what abilities or items were decisive. The player data below shows each hero's contribution."""
