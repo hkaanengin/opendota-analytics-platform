@@ -1,15 +1,17 @@
 .message {
   margin-bottom: 1rem;
-  padding: 1rem;
-  border-radius: 8px;
+  padding: 1rem 1.1rem;
+  border-radius: 14px;
   max-width: 80%;
-  animation: slideIn 0.3s ease-out;
+  width: fit-content;
+  border: 1px solid var(--border);
+  animation: slideIn 0.25s ease-out;
 }
 
 @keyframes slideIn {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(6px);
   }
   to {
     opacity: 1;
@@ -18,28 +20,30 @@
 }
 
 .user-message {
-  background-color: #4a5568;
+  background: var(--accent-soft);
+  border-color: rgba(239, 90, 63, 0.35);
   margin-left: auto;
-  text-align: right;
 }
 
 .assistant-message {
-  background-color: #2d3748;
+  background: var(--bg-elev);
   margin-right: auto;
 }
 
 .message-header {
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.4rem;
 }
 
 .message-role {
   font-weight: 600;
-  font-size: 0.875rem;
-  color: #a0aec0;
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-muted);
 }
 
 .message-content {
-  color: #e2e8f0;
+  color: var(--text);
   line-height: 1.6;
   white-space: pre-wrap;
   word-wrap: break-word;

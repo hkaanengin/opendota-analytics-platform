@@ -5,6 +5,13 @@ import ChatInput from './ChatInput';
 import { sendMessage, checkHealth } from '../services/api';
 import '../App.css';
 
+const SUGGESTED_PROMPTS = [
+  'How is player Topson performing?',
+  'Show me recent matches of Team Liquid',
+  'What are the most popular heroes this patch?',
+  'Compare Invoker vs Rubick mid-lane win rates',
+];
+
 function ChatInterface() {
   const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -25,10 +32,8 @@ function ChatInterface() {
     checkHealth()
       .then((data) => {
         setIsConnected(data.mcp_connected);
-        console.log('Backend status:', data);
       })
-      .catch((error) => {
-        console.error('Failed to connect to backend:', error);
+      .catch(() => {
         setIsConnected(false);
       });
   }, []);
@@ -40,10 +45,6 @@ function ChatInterface() {
 
     try {
       const response = await sendMessage(userMessage, messages);
-      const assistantMessage = {
-        role: 'assistant',
-        content: response.response,
-      };
       setMessages(response.conversation_history);
     } catch (error) {
       const errorMessage = {
@@ -65,28 +66,36 @@ function ChatInterface() {
   return (
     <div className="app">
       <header className="app-header">
-        <h1>Dota 2 Assistant</h1>
-        <div className="connection-status">
+        <div className="header-brand">
+          <div className="brand-icon" aria-hidden="true">D2</div>
+          <div className="brand-text">
+            <h1>Dota 2 Assistant</h1>
+            <span className="brand-subtitle">Analytics Console</span>
+          </div>
+        </div>
+        <div className="connection-pill" role="status" aria-live="polite">
           <span className={`status-dot ${isConnected ? 'connected' : 'disconnected'}`}></span>
-          <span>{isConnected ? 'Connected' : 'Disconnected'}</span>
+          <span>{isConnected ? 'MCP connected' : 'MCP disconnected'}</span>
         </div>
       </header>
 
       <div className="match-analysis-panel">
+        <span className="match-label">Match</span>
         <input
           type="text"
-          placeholder="Enter Match ID for detailed analysis..."
+          placeholder="e.g. 7428991234"
           value={matchId}
           onChange={(e) => setMatchId(e.target.value)}
-          onKeyPress={(e) => e.key === 'Enter' && handleAnalyzeMatch()}
+          onKeyDown={(e) => e.key === 'Enter' && handleAnalyzeMatch()}
           className="match-id-input"
+          aria-label="Match ID"
         />
         <button
           onClick={handleAnalyzeMatch}
           disabled={!matchId.trim()}
           className="analyze-button"
         >
-          Analyze Match
+          Analyze <kbd>↵</kbd>
         </button>
       </div>
 
@@ -94,16 +103,30 @@ function ChatInterface() {
         <div className="messages-container">
           {messages.length === 0 ? (
             <div className="welcome-message">
-              <h2>Welcome to Dota 2 Assistant!</h2>
-              <p>Ask me anything about Dota 2 players, matches, heroes, and statistics.</p>
-              <p className="highlight">Or enter a Match ID above for comprehensive AI-powered analysis!</p>
-              <div className="example-questions">
-                <p>Try asking:</p>
-                <ul>
-                  <li>"How is player Topson performing?"</li>
-                  <li>"Show me recent matches of Team Liquid"</li>
-                  <li>"What are the most popular heroes this patch?"</li>
-                </ul>
+              <div className="welcome-eyebrow">
+                <span className="eyebrow-bar" aria-hidden="true"></span>
+                <span>Start a conversation</span>
+              </div>
+              <h2>Ask anything about players, matches, heroes, and meta.</h2>
+              <p className="welcome-lede">
+                Natural-language queries over live Dota 2 data.
+                <span className="dim"> Paste a Match ID above for a full AI-powered post-game breakdown.</span>
+              </p>
+
+              <div className="suggested-label">Suggested</div>
+              <div className="suggested-grid">
+                {SUGGESTED_PROMPTS.map((prompt) => (
+                  <button
+                    key={prompt}
+                    type="button"
+                    className="suggested-pill"
+                    onClick={() => handleSendMessage(prompt)}
+                    disabled={isLoading}
+                  >
+                    <span className="diamond" aria-hidden="true">◆</span>
+                    <span>{prompt}</span>
+                  </button>
+                ))}
               </div>
             </div>
           ) : (
@@ -113,7 +136,7 @@ function ChatInterface() {
           )}
           {isLoading && (
             <div className="loading-indicator">
-              <span>Thinking...</span>
+              <span>Thinking</span>
             </div>
           )}
           <div ref={messagesEndRef} />
