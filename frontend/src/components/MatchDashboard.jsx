@@ -539,6 +539,42 @@ function MatchDashboard() {
     return item.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
   };
 
+  // Convert hero name to CDN image URL
+  const getHeroImageUrl = (heroName) => {
+    if (!heroName) return '';
+
+    // Hero name mappings (display name -> CDN slug)
+    const heroNameMap = {
+      "nature's prophet": "furion",
+      "necrophos": "necrolyte",
+      "wraith king": "skeleton_king",
+      "windranger": "windrunner",
+      "outworld destroyer": "obsidian_destroyer",
+      "outworld devourer": "obsidian_destroyer",
+      "lifestealer": "life_stealer",
+      "clockwerk": "rattletrap",
+      "timbersaw": "shredder",
+      "io": "wisp",
+      "centaur warrunner": "centaur",
+      "magnus": "magnataur",
+      "shadow fiend": "nevermore",
+      "queen of pain": "queenofpain",
+      "anti-mage": "antimage",
+      "zeus": "zuus",
+      "underlord": "abyssal_underlord",
+      "doom": "doom_bringer",
+      "treant protector": "treant",
+      "vengeful spirit": "vengefulspirit",
+      "ogre magi": "ogre_magi",
+      "shadow shaman": "shadow_shaman",
+      "witch doctor": "witch_doctor"
+    };
+
+    const lowerName = heroName.toLowerCase();
+    const slug = heroNameMap[lowerName] || lowerName.replace(/\s+/g, '_');
+    return `https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/${slug}.png`;
+  };
+
   const parseTimeToSeconds = (timeStr) => {
     if (typeof timeStr === 'number') return timeStr;
     if (!timeStr || !timeStr.includes(':')) return 0;
@@ -683,55 +719,94 @@ function MatchDashboard() {
           Team Performance
         </h2>
 
-        {/* Kills */}
-        <div className="team-comparison">
-          <div className="team-stat">
-            <div className="team-stat-value radiant">{metadata?.radiant_score ?? radiantStats.kills}</div>
-            <div className="team-stat-label">Radiant</div>
+        <div className="team-performance-container">
+          {/* Radiant Hero Portraits */}
+          <div className="hero-portraits radiant">
+            {radiantPlayers.map((player, idx) => (
+              <div key={idx} className="hero-portrait-item">
+                <img
+                  className="hero-portrait-img"
+                  src={getHeroImageUrl(player.hero_name)}
+                  alt={player.hero_name}
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                  }}
+                />
+                <span className="hero-portrait-name">{player.hero_name}</span>
+              </div>
+            ))}
           </div>
-          <div className="vs-separator">Kills</div>
-          <div className="team-stat">
-            <div className="team-stat-value dire">{metadata?.dire_score ?? direStats.kills}</div>
-            <div className="team-stat-label">Dire</div>
-          </div>
-        </div>
 
-        {/* Net Worth */}
-        <div className="team-comparison">
-          <div className="team-stat">
-            <div className="team-stat-value radiant">{(radiantStats.netWorth / 1000).toFixed(1)}k</div>
-            <div className="team-stat-label">Radiant</div>
-          </div>
-          <div className="vs-separator">Net Worth</div>
-          <div className="team-stat">
-            <div className="team-stat-value dire">{(direStats.netWorth / 1000).toFixed(1)}k</div>
-            <div className="team-stat-label">Dire</div>
-          </div>
-        </div>
+          {/* Stats Center */}
+          <div className="team-stats-center">
+            {/* Kills */}
+            <div className="team-comparison">
+              <div className="team-stat">
+                <div className="team-stat-value radiant">{metadata?.radiant_score ?? radiantStats.kills}</div>
+                <div className="team-stat-label">Radiant</div>
+              </div>
+              <div className="vs-separator">Kills</div>
+              <div className="team-stat">
+                <div className="team-stat-value dire">{metadata?.dire_score ?? direStats.kills}</div>
+                <div className="team-stat-label">Dire</div>
+              </div>
+            </div>
 
-        {/* Hero Damage */}
-        <div className="team-comparison">
-          <div className="team-stat">
-            <div className="team-stat-value radiant">{(radiantStats.heroDamage / 1000).toFixed(1)}k</div>
-            <div className="team-stat-label">Radiant</div>
-          </div>
-          <div className="vs-separator">Hero Damage</div>
-          <div className="team-stat">
-            <div className="team-stat-value dire">{(direStats.heroDamage / 1000).toFixed(1)}k</div>
-            <div className="team-stat-label">Dire</div>
-          </div>
-        </div>
+            {/* Net Worth */}
+            <div className="team-comparison">
+              <div className="team-stat">
+                <div className="team-stat-value radiant">{(radiantStats.netWorth / 1000).toFixed(1)}k</div>
+                <div className="team-stat-label">Radiant</div>
+              </div>
+              <div className="vs-separator">Net Worth</div>
+              <div className="team-stat">
+                <div className="team-stat-value dire">{(direStats.netWorth / 1000).toFixed(1)}k</div>
+                <div className="team-stat-label">Dire</div>
+              </div>
+            </div>
 
-        {/* Healing */}
-        <div className="team-comparison no-border">
-          <div className="team-stat">
-            <div className="team-stat-value radiant">{(radiantStats.heroHealing / 1000).toFixed(1)}k</div>
-            <div className="team-stat-label">Radiant</div>
+            {/* Hero Damage */}
+            <div className="team-comparison">
+              <div className="team-stat">
+                <div className="team-stat-value radiant">{(radiantStats.heroDamage / 1000).toFixed(1)}k</div>
+                <div className="team-stat-label">Radiant</div>
+              </div>
+              <div className="vs-separator">Hero Damage</div>
+              <div className="team-stat">
+                <div className="team-stat-value dire">{(direStats.heroDamage / 1000).toFixed(1)}k</div>
+                <div className="team-stat-label">Dire</div>
+              </div>
+            </div>
+
+            {/* Healing */}
+            <div className="team-comparison no-border">
+              <div className="team-stat">
+                <div className="team-stat-value radiant">{(radiantStats.heroHealing / 1000).toFixed(1)}k</div>
+                <div className="team-stat-label">Radiant</div>
+              </div>
+              <div className="vs-separator">Healing</div>
+              <div className="team-stat">
+                <div className="team-stat-value dire">{(direStats.heroHealing / 1000).toFixed(1)}k</div>
+                <div className="team-stat-label">Dire</div>
+              </div>
+            </div>
           </div>
-          <div className="vs-separator">Healing</div>
-          <div className="team-stat">
-            <div className="team-stat-value dire">{(direStats.heroHealing / 1000).toFixed(1)}k</div>
-            <div className="team-stat-label">Dire</div>
+
+          {/* Dire Hero Portraits */}
+          <div className="hero-portraits dire">
+            {direPlayers.map((player, idx) => (
+              <div key={idx} className="hero-portrait-item">
+                <img
+                  className="hero-portrait-img"
+                  src={getHeroImageUrl(player.hero_name)}
+                  alt={player.hero_name}
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                  }}
+                />
+                <span className="hero-portrait-name">{player.hero_name}</span>
+              </div>
+            ))}
           </div>
         </div>
       </div>
@@ -955,7 +1030,7 @@ function MatchDashboard() {
         </h2>
         <div className="players-grid">
           {radiantPlayers.map((player, idx) => (
-            <PlayerCard key={idx} player={player} team="radiant" formatItemName={formatItemName} />
+            <PlayerCard key={idx} player={player} team="radiant" formatItemName={formatItemName} getHeroImageUrl={getHeroImageUrl} />
           ))}
         </div>
 
@@ -965,7 +1040,7 @@ function MatchDashboard() {
         </h2>
         <div className="players-grid">
           {direPlayers.map((player, idx) => (
-            <PlayerCard key={idx} player={player} team="dire" formatItemName={formatItemName} />
+            <PlayerCard key={idx} player={player} team="dire" formatItemName={formatItemName} getHeroImageUrl={getHeroImageUrl} />
           ))}
         </div>
       </div>
@@ -974,7 +1049,7 @@ function MatchDashboard() {
 }
 
 // Player Card Component
-function PlayerCard({ player, team, formatItemName }) {
+function PlayerCard({ player, team, formatItemName, getHeroImageUrl }) {
   const [isHovered, setIsHovered] = useState(false);
 
   // Calculate average of all benchmarks (excluding tower_damage)
@@ -1016,8 +1091,18 @@ function PlayerCard({ player, team, formatItemName }) {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <h4 className={`player-hero ${team}`}>{player.hero_name}</h4>
-      {player.personaname && <div className="player-name">{player.personaname}</div>}
+      <div className="player-card-header">
+        <img
+          className={`player-hero-img ${team}`}
+          src={getHeroImageUrl(player.hero_name)}
+          alt={player.hero_name}
+          onError={(e) => { e.target.style.display = 'none'; }}
+        />
+        <div className="player-hero-info">
+          <h4 className={`player-hero ${team}`}>{player.hero_name}</h4>
+          {player.personaname && <div className="player-name">{player.personaname}</div>}
+        </div>
+      </div>
 
       <div className="player-stats">
         <div className="player-stat-row">
@@ -1066,8 +1151,16 @@ function PlayerCard({ player, team, formatItemName }) {
       {isHovered && (
         <div className={`player-popup ${team}`}>
           <div className="popup-header">
-            <h4 className={`popup-hero ${team}`}>{player.hero_name}</h4>
-            {player.personaname && <span className="popup-name">{player.personaname}</span>}
+            <img
+              className={`popup-hero-img ${team}`}
+              src={getHeroImageUrl(player.hero_name)}
+              alt={player.hero_name}
+              onError={(e) => { e.target.style.display = 'none'; }}
+            />
+            <div className="popup-hero-info">
+              <h4 className={`popup-hero ${team}`}>{player.hero_name}</h4>
+              {player.personaname && <span className="popup-name">{player.personaname}</span>}
+            </div>
           </div>
 
           <div className="popup-content">
