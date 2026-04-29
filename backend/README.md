@@ -17,8 +17,8 @@ FastAPI backend for the Dota 2 Assistant chatbot.
 
 3. **Configure environment variables:**
    - Copy `.env.example` to `.env`
-   - Get a Gemini API key from https://aistudio.google.com/app/apikey
-   - Update the MCP server path to point to your existing MCP server
+   - Get a Claude API key from https://console.anthropic.com/
+   - Update the MCP server URL to point to your running MCP server
    ```bash
    cp .env.example .env
    # Then edit .env with your values
@@ -63,7 +63,8 @@ backend/
 │   ├── config.py         # Configuration settings
 │   ├── models.py         # Pydantic models
 │   ├── mcp_client.py     # MCP client integration
-│   └── gemini_client.py  # Gemini API integration
+│   ├── claude_client.py  # Claude API integration
+│   └── match_analyzer.py # TeamfightSummarizer
 ├── requirements.txt      # Python dependencies
 ├── .env.example         # Environment variables template
 └── README.md            # This file

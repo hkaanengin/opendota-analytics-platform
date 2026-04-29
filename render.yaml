@@ -12,18 +12,12 @@ services:
     plan: free
     healthCheckPath: /
     envVars:
-      - key: GEMINI_API_KEY
-        sync: false  # Set manually in Render dashboard
       - key: CLAUDE_API_KEY
         sync: false  # Set manually in Render dashboard
       - key: MCP_SERVER_URL
         sync: false  # Set to your MCP server URL after deploying it
       - key: FRONTEND_URL
         sync: false  # Set to your frontend URL after deploying it
-      - key: CHAT_LLM_PROVIDER
-        value: gemini
-      - key: ANALYSIS_LLM_PROVIDER
-        value: claude
 
   # Frontend Static Site
   - type: web

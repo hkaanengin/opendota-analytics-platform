@@ -87,12 +87,11 @@ class MCPClient:
             await self.client.aclose()
             logger.info("Disconnected from MCP server")
 
-    def get_tools_for_gemini(self) -> List[Dict[str, Any]]:
-        """Format tools for Gemini function calling"""
-        gemini_tools = []
+    def get_tools(self) -> List[Dict[str, Any]]:
+        """Tool list in generic OpenAI-style schema; ClaudeClient adapts it further."""
+        tools = []
         for tool in self.available_tools:
-            # Use parameter schemas from MCP server
-            gemini_tool = {
+            tools.append({
                 "name": tool["name"],
                 "description": tool.get("description", "No description"),
                 "parameters": tool.get("parameters", {
@@ -100,6 +99,5 @@ class MCPClient:
                     "properties": {},
                     "required": []
                 })
-            }
-            gemini_tools.append(gemini_tool)
-        return gemini_tools
+            })
+        return tools
