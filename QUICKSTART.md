@@ -7,7 +7,8 @@ A complete web application with:
 ### Backend (FastAPI + Python)
 - `/backend/app/main.py` - Main FastAPI server with chat endpoint
 - `/backend/app/mcp_client.py` - Connects to your MCP server
-- `/backend/app/gemini_client.py` - Integrates with Gemini AI
+- `/backend/app/claude_client.py` - Integrates with Claude (Anthropic)
+- `/backend/app/match_analyzer.py` - TeamfightSummarizer (Haiku)
 - `/backend/app/models.py` - Data models for requests/responses
 - `/backend/app/config.py` - Configuration management
 
@@ -37,9 +38,8 @@ pip install -r requirements.txt
 # Configure environment
 cp .env.example .env
 # Edit .env with your settings:
-#   - GEMINI_API_KEY: Get from https://aistudio.google.com/app/apikey
-#   - MCP_SERVER_COMMAND: node
-#   - MCP_SERVER_ARGS: /path/to/your/mcp/server/index.js
+#   - CLAUDE_API_KEY: Get from https://console.anthropic.com/
+#   - MCP_SERVER_URL: http://localhost:8080 (or your deployed MCP URL)
 ```
 
 ### 2. Set Up Frontend
@@ -101,8 +101,8 @@ Try asking:
 
 ### Backend won't start
 - Check your `.env` file is configured correctly
-- Make sure your MCP server path is correct
-- Verify your Gemini API key is valid
+- Make sure your MCP server URL is correct and the server is running
+- Verify your Claude API key is valid
 
 ### Frontend shows "Disconnected"
 - Make sure the backend is running on port 8000
@@ -122,7 +122,8 @@ opendota-analytics-platform/
 │   ├── app/
 │   │   ├── main.py      # FastAPI app & endpoints
 │   │   ├── mcp_client.py    # MCP integration
-│   │   ├── gemini_client.py # Gemini AI
+│   │   ├── claude_client.py # Claude (Anthropic)
+│   │   ├── match_analyzer.py # TeamfightSummarizer
 │   │   ├── config.py    # Settings
 │   │   └── models.py    # Data models
 │   ├── requirements.txt

@@ -3,8 +3,6 @@ from typing import List, Dict, Any, Optional
 import logging
 import json
 
-from app.llm_client import BaseLLMClient
-
 logger = logging.getLogger(__name__)
 
 
@@ -86,8 +84,8 @@ def _filter_tool_payload(payload: Any) -> Any:
     return payload
 
 
-class ClaudeClient(BaseLLMClient):
-    """Claude LLM client implementation with chat and analysis capabilities."""
+class ClaudeClient:
+    """Claude LLM client with chat and analysis capabilities."""
 
     def __init__(self, api_key: str, model: str = "claude-sonnet-4-5-20250929"):
         self.client = anthropic.AsyncAnthropic(api_key=api_key)

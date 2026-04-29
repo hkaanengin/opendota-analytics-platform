@@ -2,7 +2,7 @@ import logging
 from typing import Dict, Any, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from app.llm_client import BaseLLMClient
+    from app.claude_client import ClaudeClient
 
 logger = logging.getLogger(__name__)
 
@@ -12,13 +12,7 @@ class TeamfightSummarizer:
     Generates concise LLM summaries for individual teamfights.
     """
 
-    def __init__(self, llm_client: "BaseLLMClient"):
-        """
-        Initialize the summarizer with an LLM client.
-
-        Args:
-            llm_client: LLM client instance (Gemini or Claude)
-        """
+    def __init__(self, llm_client: "ClaudeClient"):
         self.llm_client = llm_client
         self.system_instruction = """You are a Dota 2 analyst providing brief teamfight summaries.
         Given teamfight data, provide a 2-4 sentence summary that captures:

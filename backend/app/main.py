@@ -11,8 +11,6 @@ from app.models import (
     TeamfightSummaryRequest, TeamfightSummaryResponse
 )
 from app.mcp_client import MCPClient
-from app.llm_client import BaseLLMClient
-from app.gemini_client import GeminiClient
 from app.claude_client import ClaudeClient
 from app.match_analyzer import TeamfightSummarizer
 
@@ -23,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 # Global clients
 mcp_client: MCPClient | None = None
-chat_client: BaseLLMClient | None = None
+chat_client: ClaudeClient | None = None
 teamfight_summarizer: TeamfightSummarizer | None = None
 
 
@@ -40,28 +38,18 @@ async def lifespan(app: FastAPI):
         await mcp_client.connect()
         logger.info("MCP client connected successfully")
 
-        # Initialize chat LLM client based on configuration
-        if settings.chat_llm_provider == "gemini":
-            chat_client = GeminiClient(api_key=settings.gemini_api_key)
-            logger.info("Chat LLM client created: Gemini")
-        else:
-            chat_client = ClaudeClient(api_key=settings.claude_api_key)
-            logger.info("Chat LLM client created: Claude")
+        # Chat path: Sonnet handles tool routing + conversation.
+        chat_client = ClaudeClient(api_key=settings.claude_api_key)
+        logger.info("Chat LLM client created: Claude (Sonnet)")
 
-        # Initialize analysis LLM client based on configuration.
         # Analysis path (teamfight summaries) is short, deterministic prose —
         # Haiku is the right tier here, not Sonnet.
-        if settings.analysis_llm_provider == "gemini":
-            analysis_client = GeminiClient(api_key=settings.gemini_api_key)
-            logger.info("Analysis LLM client created: Gemini")
-        else:
-            analysis_client = ClaudeClient(
-                api_key=settings.claude_api_key,
-                model="claude-haiku-4-5-20251001",
-            )
-            logger.info("Analysis LLM client created: Claude (Haiku)")
+        analysis_client = ClaudeClient(
+            api_key=settings.claude_api_key,
+            model="claude-haiku-4-5-20251001",
+        )
+        logger.info("Analysis LLM client created: Claude (Haiku)")
 
-        # Initialize Teamfight Summarizer with the analysis client
         teamfight_summarizer = TeamfightSummarizer(llm_client=analysis_client)
         logger.info("Teamfight Summarizer created")
 
@@ -133,7 +121,7 @@ async def chat(request: ChatRequest):
         ]
 
         # Get tools for LLM
-        tools = mcp_client.get_tools_for_gemini()
+        tools = mcp_client.get_tools()
 
         # Call LLM with tools
         response_text = await chat_client.chat(
