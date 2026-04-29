@@ -89,9 +89,9 @@ def _filter_tool_payload(payload: Any) -> Any:
 class ClaudeClient(BaseLLMClient):
     """Claude LLM client implementation with chat and analysis capabilities."""
 
-    def __init__(self, api_key: str):
+    def __init__(self, api_key: str, model: str = "claude-sonnet-4-5-20250929"):
         self.client = anthropic.AsyncAnthropic(api_key=api_key)
-        self.model = "claude-sonnet-4-5-20250929"
+        self.model = model
 
         self.system_instruction = (
             "You are a Dota 2 assistant with access to OpenDota data through MCP tools.\n\n"
@@ -222,7 +222,7 @@ class ClaudeClient(BaseLLMClient):
 
             response = await self.client.messages.create(
                 model=self.model,
-                max_tokens=4096,
+                max_tokens=500,
                 system=[{
                     "type": "text",
                     "text": system_instruction,
