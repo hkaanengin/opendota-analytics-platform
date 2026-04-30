@@ -87,7 +87,7 @@ def _filter_tool_payload(payload: Any) -> Any:
 class ClaudeClient:
     """Claude LLM client with chat and analysis capabilities."""
 
-    def __init__(self, api_key: str, model: str = "claude-sonnet-4-5-20250929"):
+    def __init__(self, api_key: str, model: str = "claude-sonnet-4-6"):
         self.client = anthropic.AsyncAnthropic(api_key=api_key)
         self.model = model
 
@@ -134,6 +134,7 @@ class ClaudeClient:
                     system=system_blocks,
                     messages=messages,
                     tools=claude_tools,
+                    output_config={"effort": "low"},
                 )
                 self._log_usage(response, stage="chat:initial")
 
@@ -187,6 +188,7 @@ class ClaudeClient:
                         system=system_blocks,
                         messages=messages,
                         tools=claude_tools,
+                        output_config={"effort": "low"},
                     )
                     self._log_usage(response, stage="chat:tool-loop")
 
@@ -197,6 +199,7 @@ class ClaudeClient:
                     max_tokens=4096,
                     system=self._build_cached_system_blocks(),
                     messages=messages,
+                    output_config={"effort": "low"},
                 )
                 self._log_usage(response, stage="chat:no-tools")
                 return self._extract_text_response(response)
